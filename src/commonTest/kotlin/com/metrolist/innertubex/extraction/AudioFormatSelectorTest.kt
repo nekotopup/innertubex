@@ -277,4 +277,44 @@ class AudioFormatSelectorTest {
         assertNull(selectBestAudioFormat(emptyList(), AudioQuality.AUTO))
         assertNotNull(selectBestAudioFormat(listOf(Format(itag = 1, mimeType = "audio/mp4", bitrate = 1, url = "https://audio"))))
     }
+
+    @Test
+    fun hiResPrefersHighestFidelityRegardlessofMimeRank() {
+        val formats =
+            listOf(
+                Format(itag = 140, mimeType = "audio/mp4", bitrate = 256_000, url = "https://aac-256"),
+                Format(itag = 251, mimeType = "audio/webm", bitrate = 144_000, url = "https://opus-144", audioChannels = 2, audioSampleRate = 48_000),
+            )
+
+        assertEquals("https://aac-256", selectBestAudioFormat(formats, AudioQuality.HI_RES)?.url)
+    }
+
+    @Test
+    fun hiResPrefersHigherSampleRateAtEqualBitrateAndContainer() {
+        val stereo48k =
+            Format(itag = 140, mimeType = "audio/mp4", bitrate = 256_000, url = "https://48k", audioChannels = 2, audioSampleRate = 48_000)
+        val stereo192k =
+            Format(itag = 141, mimeType = "audio/mp4", bitrate = 256_000, url = "https://192k", audioChannels = 2, audioSampleRate = 192_000)
+
+        assertEquals("https://192k", selectBestAudioFormat(listOf(stereo48k, stereo192k), AudioQuality.HI_RES)?.url)
+    }
+
+    @Test
+    fun hiResPrefersStereoOverMonoAtEqualBitrateAndContainer() {
+        val mono = Format(itag = 140, mimeType = "audio/mp4", bitrate = 256_000, url = "https://mono", audioChannels = 1, audioSampleRate = 48_000)
+        val stereo = Format(itag = 141, mimeType = "audio/mp4", bitrate = 256_000, url = "https://stereo", audioChannels = 2, audioSampleRate = 48_000)
+
+        assertEquals("https://stereo", selectBestAudioFormat(listOf(mono, stereo), AudioQuality.HI_RES)?.url)
+    }
+
+    @Test
+    fun hiResStillPrefersBitrateOverContainer() {
+        val formats =
+            listOf(
+                Format(itag = 140, mimeType = "audio/mp4", bitrate = 256_000, url = "https://aac-256"),
+                Format(itag = 251, mimeType = "audio/webm", bitrate = 96_000, url = "https://opus"),
+            )
+
+        assertEquals("https://aac-256", selectBestAudioFormat(formats, AudioQuality.HI_RES)?.url)
+    }
 }

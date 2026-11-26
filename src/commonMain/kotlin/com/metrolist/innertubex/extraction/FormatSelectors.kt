@@ -35,6 +35,10 @@ public fun selectBestAudioFormat(
         AudioQuality.MP4 -> {
             validFormats.filter { it.mimeType.contains("audio/mp4", ignoreCase = true) }.maxByOrNull(::audioFormatScore)
         }
+
+        AudioQuality.HI_RES -> {
+            validFormats.maxWithOrNull(hiResAudioFormatComparator)
+        }
     }
 }
 
@@ -121,6 +125,14 @@ private val highAudioFormatComparator =
         .thenBy { it.audioChannelRank() }
         .thenBy { (it.audioSampleRate ?: 0).coerceIn(0, 48_000) }
         .thenBy { it.audioContainerRank() }
+
+// Highest-bitrate lossless-leaning stream first: WebM/Opus ranks above AAC at equal
+// bitrate, and the sample-rate cap is lifted so >48 kHz encodings are preferred.
+private val hiResAudioFormatComparator =
+    compareBy<Format> { it.bitrate }
+        .thenBy { it.audioContainerRank() }
+        .thenBy { it.audioChannelRank() }
+        .thenBy { it.audioSampleRate ?: 0 }
 
 private fun Format.audioChannelRank(): Int =
     when (audioChannels) {

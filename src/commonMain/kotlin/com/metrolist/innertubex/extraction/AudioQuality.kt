@@ -5,4 +5,5 @@ public enum class AudioQuality {
     LOW,
     HIGH,
     MP4,
+    HI_RES,
 }

@@ -6,6 +6,13 @@ that `0.x` releases may contain breaking API changes.
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-11-26
+
+### Added
+
+- `AudioQuality.HI_RES`: selects the highest-bitrate stream, preferring WebM/Opus
+  at equal bitrate and lifting the 48 kHz sample-rate cap so higher-rate encodings win.
+
 ## [0.13.1] - 2026-11-23
 
 ### Fixed
